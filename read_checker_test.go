@@ -212,6 +212,12 @@ func TestReaderCheck(t *testing.T) {
 	})
 }
 
+func TestEarlyEOF(t *testing.T) {
+	buff := bytes.NewBuffer([]byte("a"))
+	reader := NewReadChecker(buff)
+	require.NoError(t, reader.Err())
+}
+
 func BenchmarkCheckFinal(b *testing.B) {
 	yo := strings.NewReader("oh snap what upoh snap what up")
 	b.Run("check", func(b *testing.B) {

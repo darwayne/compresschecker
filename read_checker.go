@@ -3,6 +3,7 @@ package compresschecker
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"io"
 	"sync"
 	"sync/atomic"
@@ -43,7 +44,7 @@ func (r *ReadChecker) Reset(rr io.Reader) *ReadChecker {
 	r.reader = bufioReaderPool.Get().(*bufio.Reader)
 	r.reader.Reset(rr)
 	info, err := r.reader.Peek(maxSize)
-	if err != nil {
+	if err != nil && !errors.Is(err, io.EOF) {
 		r.err = err
 		return r
 	}
