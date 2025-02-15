@@ -24,10 +24,11 @@ func NewReadChecker(r io.Reader) *ReadChecker {
 // ReadChecker allows you to check if an io.Reader is compressed or not
 type ReadChecker struct {
 	io.Reader
-	reader *bufio.Reader
-	myType CompressionType
-	closed int32
-	err    error
+	originalReader io.Reader
+	reader         *bufio.Reader
+	myType         CompressionType
+	closed         int32
+	err            error
 }
 
 func (r *ReadChecker) IsCompressed() bool {
@@ -52,6 +53,7 @@ func (r *ReadChecker) Reset(rr io.Reader) *ReadChecker {
 	r.myType = FormatOfBytes(info)
 
 	r.Reader = r.reader
+	r.originalReader = rr
 	return r
 }
 func (r *ReadChecker) Check() (CompressionType, error) {
@@ -69,6 +71,9 @@ func (r *ReadChecker) Close() error {
 	atomic.StoreInt32(&r.closed, 1)
 	bufioReaderPool.Put(r.reader)
 	readCheckerPool.Put(r)
+	if closer, ok := r.originalReader.(io.Closer); ok {
+		return closer.Close()
+	}
 	return nil
 }
 
